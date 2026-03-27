@@ -2,36 +2,113 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CMS Note Identification Game - Precision Pro</title>
+    <title>CMS Note Identification Game - Pro Edition</title>
     <style>
-        :root { --primary-teal: #4db6ac; --bg: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; padding-top: 50px; }
-        #game-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 800px; }
-        .status { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color: #444; }
-        canvas { width: 100%; border-bottom: 1px solid #eee; margin-bottom: 20px; }
-        #piano { display: flex; justify-content: center; height: 180px; position: relative; }
-        .key { width: 45px; height: 100%; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 0 0 5px 5px; z-index: 1; }
-        .key.black { width: 30px; height: 110px; background: #333; margin: 0 -15px; z-index: 2; border: none; }
-        .key:active { background: #e0e0e0; }
+        :root {
+            --primary-teal: #4db6ac;
+            --secondary-teal: #26a69a;
+            --bg: #f4f7f6;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        #game-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            width: 1000px; /* 增加寬度以容納2個八度 */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .status {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #444;
+            display: flex;
+            gap: 25px;
+        }
+        canvas {
+            width: 100%;
+            height: 220px;
+            margin-bottom: 30px;
+        }
+        /* 鋼琴容器：寬度需自動適配 */
+        #piano {
+            display: flex;
+            justify-content: center;
+            height: 220px;
+            position: relative;
+            background: #222;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .key {
+            width: 50px;
+            height: 100%;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 0 6px 6px;
+            cursor: pointer;
+            z-index: 1;
+            transition: background 0.1s;
+        }
+        .key.black {
+            width: 34px;
+            height: 130px;
+            background: #333;
+            margin: 0 -17px;
+            z-index: 2;
+            border: none;
+            border-radius: 0 0 4px 4px;
+        }
+        .key:active { background: #e0e0e0; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); }
         .key.black:active { background: #000; }
-        .btn-group { display: flex; justify-content: flex-end; gap: 10px; }
-        .btn { background: var(--primary-teal); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        
+        .footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <div class="status">
-        <span id="score">Score: 0/20 ✅</span>
-        <span id="timer">🕒 00:00</span>
+    <div class="header">
+        <h2 style="margin:0; color:var(--secondary-teal);">CMS Note ID Game</h2>
+        <div class="status">
+            <span id="score-label">Correct: 0 ✅</span>
+            <span id="timer-label">🕒 00:00</span>
+        </div>
     </div>
 
-    <canvas id="staffCanvas" width="800" height="200"></canvas>
+    <canvas id="staffCanvas" width="1000" height="220"></canvas>
 
     <div id="piano"></div>
 
-    <div class="btn-group" style="margin-top: 20px;">
-        <button class="btn" onclick="location.reload()">Reset Game</button>
+    <div class="footer">
+        <button class="btn" onclick="location.reload()">Restart Game</button>
     </div>
 </div>
 
@@ -40,24 +117,26 @@
     const ctx = canvas.getContext('2d');
     const pianoContainer = document.getElementById('piano');
 
-    // --- 核心比例參數 ---
-    const s = 20; // 線與線之間的距離 (Space)
-    const centerY = canvas.height / 2; // 第三線 (B4) 的 Y 座標位置
-    let currentTarget = "";
+    // --- 核心比例 ---
+    const s = 22; // 線間距
+    const centerY = canvas.height / 2 + 10; // 第三線 B4 的位置
     let score = 0;
+    let targetNote = "";
+    let startTime = Date.now();
 
-    // 音符與 B4 (中心線) 的半音步數差
-    // 負數代表在下面，正數代表在上面
-    const noteData = {
-        "C4": -6, "D4": -5, "E4": -4, "F4": -3, "G4": -2, "A4": -1, 
-        "B4": 0,  "C5": 1,  "D5": 2,  "E5": 3,  "F5": 4,  "G5": 5, "A5": 6
+    // 數據：C4 到 C6 (2 個八度)
+    // 數字代表距離中心線 B4 的半音步數
+    const noteMap = {
+        "C4": -6, "D4": -5, "E4": -4, "F4": -3, "G4": -2, "A4": -1, "B4": 0,
+        "C5": 1,  "D5": 2,  "E5": 3,  "F5": 4,  "G5": 5,  "A5": 6,  "B5": 7,
+        "C6": 8
     };
 
+    // 鋼琴佈局 (2 個八度：C4-C6)
     const pianoLayout = [
-        {n:"C4",t:"w"}, {n:"C#4",t:"b"}, {n:"D4",t:"w"}, {n:"D#4",t:"b"}, {n:"E4",t:"w"},
-        {n:"F4",t:"w"}, {n:"F#4",t:"b"}, {n:"G4",t:"w"}, {n:"G#4",t:"b"}, {n:"A4",t:"w"}, {n:"A#4",t:"b"}, {n:"B4",t:"w"},
-        {n:"C5",t:"w"}, {n:"C#5",t:"b"}, {n:"D5",t:"w"}, {n:"D#5",t:"b"}, {n:"E5",t:"w"},
-        {n:"F5",t:"w"}, {n:"F#5",t:"b"}, {n:"G5",t:"w"}, {n:"G#5",t:"b"}, {n:"A5",t:"w"}
+        "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4",
+        "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5",
+        "C6"
     ];
 
     function drawStaff() {
@@ -65,86 +144,106 @@
         ctx.strokeStyle = "#333";
         ctx.lineWidth = 1.5;
 
-        // 1. 畫五線譜 (以 centerY 為中心畫 5 條線)
+        // 1. 畫五線譜
         for (let i = -2; i <= 2; i++) {
             let y = centerY + (i * s);
             ctx.beginPath();
             ctx.moveTo(50, y);
-            ctx.lineTo(750, y);
+            ctx.lineTo(950, y);
             ctx.stroke();
         }
 
-        // 2. 畫高音譜號 (Treble Clef)
-        ctx.font = `${s * 4.5}px Arial`; 
+        // 2. 巨大的高音譜號 (Treble Clef)
+        // 跨越整個五線譜，調整座標使其中心環繞第二線 (G4)
+        ctx.font = `${s * 7.5}px Arial`; 
         ctx.fillStyle = "#000";
-        // 高音譜號的精確基準：G4 螺旋中心在第二線 (centerY + s)
-        ctx.fillText("𝄞", 70, centerY + s * 1.2); 
+        // 為了讓它跨越 5 線，Y 偏移量經過精密計算
+        ctx.fillText("𝄞", 60, centerY + s * 1.6); 
 
-        // 3. 畫題目音符
-        if (currentTarget) drawNote(currentTarget);
+        if (targetNote) renderNote(targetNote);
     }
 
-    function drawNote(noteName) {
-        const steps = noteData[noteName];
-        if (steps === undefined) return;
-
-        // 計算音符中心的 Y 座標：每一步是半個間距 (s/2)
-        // 因為音名越高 Y 越小，所以是用減法
+    function renderNote(name) {
+        const steps = noteMap[name];
         const y = centerY - (steps * (s / 2));
-        const x = canvas.width / 2;
+        const x = canvas.width / 2 + 50;
 
         ctx.fillStyle = "#000";
+        ctx.strokeStyle = "#000";
+
+        // 畫橢圓符頭 (旋轉 15 度)
         ctx.beginPath();
-        // 音符符頭比例：寬 1.2s, 高 1s
-        ctx.ellipse(x, y, s * 0.6, s * 0.5, Math.PI / 8, 0, 2 * Math.PI);
+        ctx.ellipse(x, y, s * 0.65, s * 0.5, Math.PI / 8, 0, 2 * Math.PI);
         ctx.fill();
 
-        // 4. 畫符桿 (Stem)
+        // 畫符桿 (Stem) - 修正方向邏輯
         ctx.lineWidth = 2;
         ctx.beginPath();
-        if (steps >= 0) { // B4 以上符桿向下
-            ctx.moveTo(x - s * 0.5, y);
-            ctx.lineTo(x - s * 0.5, y + s * 3.5);
-        } else { // B4 以下符桿向上
-            ctx.moveTo(x + s * 0.5, y);
-            ctx.lineTo(x + s * 0.5, y - s * 3.5);
+        if (steps >= 0) { 
+            // B4 及以上：符桿向下，在左側
+            ctx.moveTo(x - s * 0.6, y);
+            ctx.lineTo(x - s * 0.6, y + s * 3.5);
+        } else { 
+            // B4 以下：符桿向上，在右側
+            ctx.moveTo(x + s * 0.6, y);
+            ctx.lineTo(x + s * 0.6, y - s * 3.5);
         }
         ctx.stroke();
 
-        // 5. 加線 (Ledger Lines) - 針對 C4 或 A5 等超出五線譜的音
-        if (noteName === "C4") {
+        // 畫加線 (Ledger Lines)
+        // 下加線 (C4)
+        if (steps <= -6) {
             ctx.beginPath();
             ctx.moveTo(x - s, centerY + s * 3);
             ctx.lineTo(x + s, centerY + s * 3);
             ctx.stroke();
         }
+        // 上加線 (A5, B5, C6)
+        if (steps >= 6) {
+            ctx.beginPath();
+            let ly = centerY - (3 * s); // 第一條上加線位置
+            ctx.moveTo(x - s, ly); ctx.lineTo(x + s, ly);
+            if (steps >= 8) { // C6 需要第二條上加線
+                let ly2 = centerY - (4 * s);
+                ctx.moveTo(x - s, ly2); ctx.lineTo(x + s, ly2);
+            }
+            ctx.stroke();
+        }
     }
 
     function initPiano() {
-        pianoLayout.forEach(key => {
+        pianoLayout.forEach(note => {
+            const isBlack = note.includes("#");
             const div = document.createElement('div');
-            div.className = `key ${key.t === 'b' ? 'black' : ''}`;
-            div.onclick = () => checkAnswer(key.n);
+            div.className = `key ${isBlack ? 'black' : ''}`;
+            div.dataset.note = note;
+            div.onclick = () => {
+                if (note === targetNote) {
+                    score++;
+                    document.getElementById('score-label').innerText = `Correct: ${score} ✅`;
+                    next();
+                }
+            };
             pianoContainer.appendChild(div);
         });
     }
 
-    function checkAnswer(note) {
-        if (note === currentTarget) {
-            score++;
-            document.getElementById('score').innerText = `Score: ${score}/20 ✅`;
-            nextRound();
-        }
-    }
-
-    function nextRound() {
-        const keys = Object.keys(noteData);
-        currentTarget = keys[Math.floor(Math.random() * keys.length)];
+    function next() {
+        const keys = Object.keys(noteMap);
+        targetNote = keys[Math.floor(Math.random() * keys.length)];
         drawStaff();
     }
 
+    // 計時器邏輯
+    setInterval(() => {
+        const diff = Math.floor((Date.now() - startTime) / 1000);
+        const m = String(Math.floor(diff / 60)).padStart(2, '0');
+        const s = String(diff % 60).padStart(2, '0');
+        document.getElementById('timer-label').innerText = `🕒 ${m}:${s}`;
+    }, 1000);
+
     initPiano();
-    nextRound();
+    next();
 </script>
 
 </body>
