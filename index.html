@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Note Identification Game</title>
+    <title>Note Identification Game - Super Pro</title>
     <style>
         :root {
             --mint: #B2F2BB;
@@ -22,14 +22,15 @@
             min-height: 100vh;
             margin: 0;
             color: var(--text);
+            overflow: hidden;
         }
 
         #game-container {
             background: white;
-            padding: 25px;
+            padding: 30px;
             border-radius: 40px;
             box-shadow: 0 15px 0px #CBD5E0, 0 25px 50px rgba(0,0,0,0.1);
-            width: 950px;
+            width: 1000px;
             position: relative;
             text-align: center;
             border: 10px solid white;
@@ -46,27 +47,26 @@
             background: var(--yellow);
             padding: 12px 25px;
             border-radius: 30px;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: bold;
             border: 3px solid #FAD7A0;
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             margin: 0;
             color: #FF85A1;
-            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px rgba(0,0,0,0.05);
+            text-shadow: 2px 2px 0px #FFF;
         }
 
         canvas {
             width: 100%;
-            height: 240px;
+            height: 280px;
             background: white;
             border-radius: 20px;
             margin: 10px 0;
         }
 
-        /* 鋼琴樣式 */
         #piano {
             display: flex;
             justify-content: center;
@@ -78,7 +78,7 @@
         }
 
         .key {
-            width: 46px;
+            width: 48px;
             height: 100%;
             background: white;
             border: 1px solid #D1D5DB;
@@ -90,10 +90,10 @@
         }
 
         .key.black {
-            width: 30px;
+            width: 32px;
             height: 120px;
             background: #4A5568;
-            margin: 0 -15px;
+            margin: 0 -16px;
             z-index: 2;
             border: none;
             box-shadow: 0 4px 0 #2D3748;
@@ -102,11 +102,11 @@
         .key:active { transform: translateY(4px); box-shadow: none; background: #FFEBEE; }
         .key.black:active { background: #000; }
 
-        /* 結束彈窗與紀錄 */
+        /* 結束彈窗樣式 */
         #overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             border-radius: 30px;
             display: none;
             flex-direction: column;
@@ -115,42 +115,57 @@
             z-index: 100;
         }
 
-        .record-list {
-            margin: 20px 0;
-            width: 80%;
-            background: var(--yellow);
-            padding: 15px;
-            border-radius: 20px;
-            list-style: none;
-            text-align: left;
+        .input-group {
+            background: var(--pink);
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 8px 0 #F78DA7;
+            margin-bottom: 20px;
         }
 
         input {
-            padding: 10px;
-            font-size: 1.2rem;
+            padding: 12px;
+            font-size: 1.3rem;
             border-radius: 15px;
-            border: 2px solid var(--blue);
-            margin-bottom: 15px;
+            border: 3px solid white;
             text-align: center;
+            outline: none;
+            width: 250px;
         }
 
         .btn-fancy {
             background: #FF85A1;
             color: white;
-            padding: 12px 35px;
-            border-radius: 30px;
-            font-size: 1.3rem;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 6px 0 #D6336C;
+            box-shadow: 0 8px 0 #D6336C;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-fancy:active { transform: translateY(4px); box-shadow: 0 4px 0 #D6336C; }
+
+        .leaderboard {
+            width: 80%;
+            background: var(--mint);
+            padding: 20px;
+            border-radius: 25px;
+            margin-top: 10px;
+        }
+
+        #last-result-display {
+            font-size: 1.8rem;
+            color: #2D3748;
+            margin-bottom: 10px;
             font-weight: bold;
         }
 
-        .btn-fancy:active { transform: translateY(3px); box-shadow: 0 3px 0 #D6336C; }
-
         #feedback-text {
             position: absolute;
-            top: 45%; left: 50%;
+            top: 45%; left: 55%;
             transform: translate(-50%, -50%);
             font-size: 5rem;
             font-weight: 900;
@@ -164,28 +179,39 @@
 
 <div id="game-container">
     <div class="header">
-        <div class="score-board">✨ SCORE: <span id="score">0</span></div>
+        <div class="score-board">⭐ SCORE: <span id="score">0</span></div>
         <h1>Note Identification Game</h1>
         <div class="timer-box" id="timer">01:00</div>
     </div>
 
-    <canvas id="staffCanvas" width="1000" height="240"></canvas>
+    <canvas id="staffCanvas" width="1000" height="280"></canvas>
     <div id="feedback-text"></div>
 
     <div id="piano"></div>
 
     <div id="overlay">
-        <h2 id="result-title" style="font-size: 2.5rem; margin: 10px; color: #FF85A1;">Time's Up! 🍭</h2>
-        <div id="score-input-area">
-            <p style="font-size: 1.3rem;">Great Job! Enter your name:</p>
-            <input type="text" id="playerName" placeholder="Your Name" maxlength="10">
-            <br>
-            <button class="btn-fancy" onclick="submitScore()">Submit & Play Again</button>
+        <div id="final-stats-view" style="display: none;">
+            <div id="last-result-display"></div>
+            <div class="leaderboard">
+                <h3 style="margin: 0 0 10px 0;">🏆 High Score Records</h3>
+                <div id="highScores"></div>
+            </div>
+            <button class="btn-fancy" onclick="resetForNewGame()">Play Again! 🚀</button>
         </div>
-        
-        <div class="record-list">
-            <h3 style="margin: 0 0 10px 0;">🏆 High Scores</h3>
-            <div id="highScores"></div>
+
+        <div id="input-view">
+            <h2 style="font-size: 2.8rem; color: #FF85A1; margin-top: 0;">Time's Up! 🍭</h2>
+            <div class="input-group">
+                <p style="font-size: 1.4rem; margin-top: 0;">Amazing! What's your name?</p>
+                <input type="text" id="playerName" placeholder="Enter Name" maxlength="12">
+                <br>
+                <button class="btn-fancy" onclick="submitScore()">SUBMIT SCORE</button>
+            </div>
+        </div>
+
+        <div id="start-view">
+            <h2 style="font-size: 2.5rem; color: #5B5B5B;">Ready for Music Fun?</h2>
+            <button class="btn-fancy" onclick="startGame()">START GAME 🚀</button>
         </div>
     </div>
 </div>
@@ -221,22 +247,23 @@
         
         // 畫五線譜
         ctx.strokeStyle = "#D1D5DB";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
         for (let i = -2; i <= 2; i++) {
             let y = centerY + (i * s);
             ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(950, y); ctx.stroke();
         }
 
-        // --- 高音譜號精確調整 ---
+        // --- 高音譜號：大 50% 並精確對齊 ---
         ctx.save();
         ctx.fillStyle = "#5B5B5B";
-        ctx.font = `${s * 9}px Arial`;
+        // 大 50%：從 s*9 變成 s*13.5
+        ctx.font = `${s * 13.5}px Arial`;
         ctx.textBaseline = "middle";
         
-        // 1. 橫向縮窄 (scaleX)
-        // 2. 移動座標：原本位置上移 24px (centerY + s*0.5)
-        ctx.translate(70, centerY + s * 0.5); 
-        ctx.scale(0.8, 1); // 橫向壓縮到 80%，讓腹部看起來縮窄
+        // 坐標精密調整：因為字體變大，Y 軸偏移需微調以維持視覺比例
+        // 寬度縮窄 0.8 倍保持形態，高度不變
+        ctx.translate(80, centerY + s * 1.3); 
+        ctx.scale(0.8, 1); 
         ctx.fillText("𝄞", 0, 0); 
         ctx.restore();
 
@@ -246,21 +273,20 @@
     function renderNote() {
         const steps = noteMap[targetNote];
         const y = centerY - (steps * (s / 2));
-        const x = canvas.width / 2 + 50;
+        const x = canvas.width / 2 + 80;
 
         ctx.strokeStyle = noteColor;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
 
         // 全音符：空心、斜率反轉 (/)
         ctx.beginPath();
-        // 旋轉角度改為 -Math.PI / 8 實現水平反轉
-        ctx.ellipse(x, y, s * 0.7, s * 0.55, -Math.PI / 8, 0, 2 * Math.PI);
+        ctx.ellipse(x, y, s * 0.75, s * 0.6, -Math.PI / 8, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // 畫加線
-        if (steps <= -6) { ctx.beginPath(); ctx.moveTo(x-25, centerY+s*3); ctx.lineTo(x+25, centerY+s*3); ctx.stroke(); }
-        if (steps >= 6) { ctx.beginPath(); ctx.moveTo(x-25, centerY-s*3); ctx.lineTo(x+25, centerY-s*3); ctx.stroke(); }
-        if (steps >= 8) { ctx.beginPath(); ctx.moveTo(x-25, centerY-s*4); ctx.lineTo(x+25, centerY-s*4); ctx.stroke(); }
+        // 加線 (C4, A5, C6)
+        if (steps <= -6) { ctx.beginPath(); ctx.moveTo(x-30, centerY+s*3); ctx.lineTo(x+30, centerY+s*3); ctx.stroke(); }
+        if (steps >= 6) { ctx.beginPath(); ctx.moveTo(x-30, centerY-s*3); ctx.lineTo(x+30, centerY-s*3); ctx.stroke(); }
+        if (steps >= 8) { ctx.beginPath(); ctx.moveTo(x-30, centerY-s*4); ctx.lineTo(x+30, centerY-s*4); ctx.stroke(); }
     }
 
     function initPiano() {
@@ -278,11 +304,11 @@
             noteColor = "#5B5B5B"; 
             score += 10;
             document.getElementById('score').innerText = score;
-            showFeedback("🌈 WELL DONE!", "#4CAF50");
+            showFeedback("🌈 GREAT!", "#4CAF50");
             next();
         } else {
             noteColor = "#FF5252"; 
-            showFeedback("Ouch! 🍎", "#FF5252");
+            showFeedback("Oops! 🍎", "#FF5252");
             drawStaff();
         }
     }
@@ -299,7 +325,7 @@
         let newNote;
         do {
             newNote = keys[Math.floor(Math.random() * keys.length)];
-        } while (newNote === targetNote); // 避免連續出同一題
+        } while (newNote === targetNote);
         targetNote = newNote;
         noteColor = "#5B5B5B"; 
         drawStaff(); 
@@ -311,6 +337,9 @@
         gameActive = true;
         document.getElementById('score').innerText = "0";
         document.getElementById('overlay').style.display = 'none';
+        document.getElementById('start-view').style.display = 'none';
+        document.getElementById('input-view').style.display = 'none';
+        document.getElementById('final-stats-view').style.display = 'none';
         
         timerId = setInterval(() => {
             timeLeft--;
@@ -327,45 +356,54 @@
         gameActive = false;
         clearInterval(timerId);
         document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('input-view').style.display = 'block';
+    }
+
+    function submitScore() {
+        const name = document.getElementById('playerName').value.trim() || "Musician";
+        const newRecord = { name: name, score: score, date: new Date().toLocaleDateString() };
+        
+        // 儲存到 LocalStorage
+        let records = JSON.parse(localStorage.getItem('cmsNoteRecords') || "[]");
+        records.push(newRecord);
+        records.sort((a, b) => b.score - a.score);
+        records = records.slice(0, 5); 
+        localStorage.setItem('cmsNoteRecords', JSON.stringify(records));
+        
+        // 顯示結果與名次
+        document.getElementById('input-view').style.display = 'none';
+        document.getElementById('final-stats-view').style.display = 'block';
+        document.getElementById('last-result-display').innerText = `Player: ${name} | Score: ${score} pts`;
+        
         displayHighScores();
     }
 
-    // 分數紀錄功能 (LocalStorage)
-    function submitScore() {
-        const name = document.getElementById('playerName').value || "Little Musician";
-        const newRecord = { name: name, score: score, date: new Date().toLocaleDateString() };
-        
-        let records = JSON.parse(localStorage.getItem('noteGameRecords') || "[]");
-        records.push(newRecord);
-        records.sort((a, b) => b.score - a.score);
-        records = records.slice(0, 5); // 只保留前5名
-        
-        localStorage.setItem('noteGameRecords', JSON.stringify(records));
-        
-        document.getElementById('playerName').value = "";
-        startGame(); // 重新開始
-    }
-
     function displayHighScores() {
-        const records = JSON.parse(localStorage.getItem('noteGameRecords') || "[]");
+        const records = JSON.parse(localStorage.getItem('cmsNoteRecords') || "[]");
         const listArea = document.getElementById('highScores');
         if (records.length === 0) {
-            listArea.innerHTML = "<p>No records yet. Be the first!</p>";
+            listArea.innerHTML = "<p>Play to set a record!</p>";
             return;
         }
-        let html = "<table style='width:100%'>";
-        records.forEach((r, index) => {
-            html += `<tr><td>${index+1}. ${r.name}</td><td style='text-align:right'>${r.score} pts</td></tr>`;
+        let html = "<table style='width:100%; border-spacing: 0 10px; font-size: 1.2rem;'>";
+        records.forEach((r, idx) => {
+            html += `<tr><td style='text-align:left;'>#${idx+1} ${r.name}</td><td style='text-align:right; font-weight:bold;'>${r.score} pts</td></tr>`;
         });
         html += "</table>";
         listArea.innerHTML = html;
     }
 
+    function resetForNewGame() {
+        document.getElementById('playerName').value = "";
+        startGame();
+    }
+
     window.onload = () => {
         initPiano();
         document.getElementById('overlay').style.display = 'flex';
-        document.getElementById('score-input-area').innerHTML = `<button class="btn-fancy" onclick="startGame()">START GAME 🚀</button>`;
-        displayHighScores();
+        document.getElementById('start-view').style.display = 'block';
+        document.getElementById('input-view').style.display = 'none';
+        document.getElementById('final-stats-view').style.display = 'none';
         drawStaff();
     };
 </script>
