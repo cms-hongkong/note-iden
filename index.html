@@ -1,142 +1,162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>CMS Note ID Game - Precision Ed. V6</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Identification Game</title>
     <style>
         :root {
-            --primary: #FF5252;
-            --success: #4CAF50;
-            --info: #2196F3;
-            --accent: #9C27B0;
-            --bg-gradient: linear-gradient(135deg, #e0f7fa 0%, #fce4ec 100%);
+            --mint: #B2F2BB;
+            --pink: #FFD6E0;
+            --blue: #A2D2FF;
+            --yellow: #FEF9E7;
+            --text: #5B5B5B;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-gradient);
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(180deg, #E3F2FD 0%, #F3E5F5 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            color: var(--text);
         }
 
         #game-container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            width: 1000px;
+            background: white;
+            padding: 25px;
+            border-radius: 40px;
+            box-shadow: 0 15px 0px #CBD5E0, 0 25px 50px rgba(0,0,0,0.1);
+            width: 950px;
             position: relative;
-            border: 8px solid white;
+            text-align: center;
+            border: 10px solid white;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
-        .score-board {
-            background: #fff;
-            padding: 10px 25px;
-            border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #333;
+        .score-board, .timer-box {
+            background: var(--yellow);
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border: 3px solid #FAD7A0;
         }
 
-        .timer-box {
-            background: #333;
-            color: #FFEB3B;
-            padding: 10px 25px;
-            border-radius: 50px;
-            font-size: 1.5rem;
-            font-family: 'Courier New', monospace;
+        h1 {
+            font-size: 2.2rem;
+            margin: 0;
+            color: #FF85A1;
+            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px rgba(0,0,0,0.05);
         }
 
         canvas {
             width: 100%;
-            height: 260px;
-            background: #fff;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            height: 240px;
+            background: white;
+            border-radius: 20px;
+            margin: 10px 0;
         }
 
+        /* 鋼琴樣式 */
         #piano {
             display: flex;
             justify-content: center;
-            height: 220px;
-            position: relative;
-            padding: 10px;
-            background: #2c3e50;
-            border-radius: 15px;
-            box-shadow: 0 10px 0 #1a252f;
+            height: 200px;
+            padding: 15px;
+            background: #F7FAFC;
+            border-radius: 25px;
+            border: 4px solid #EDF2F7;
         }
 
         .key {
-            width: 48px;
+            width: 46px;
             height: 100%;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 0 0 8px 8px;
+            background: white;
+            border: 1px solid #D1D5DB;
+            border-radius: 0 0 10px 10px;
             cursor: pointer;
             z-index: 1;
-            transition: transform 0.1s;
+            transition: all 0.1s;
+            box-shadow: 0 4px 0 #E2E8F0;
         }
 
         .key.black {
-            width: 32px;
-            height: 130px;
-            background: linear-gradient(#444, #000);
-            margin: 0 -16px;
+            width: 30px;
+            height: 120px;
+            background: #4A5568;
+            margin: 0 -15px;
             z-index: 2;
             border: none;
+            box-shadow: 0 4px 0 #2D3748;
         }
 
-        .key:active { background: #ffe082; transform: translateY(5px); }
+        .key:active { transform: translateY(4px); box-shadow: none; background: #FFEBEE; }
         .key.black:active { background: #000; }
 
+        /* 結束彈窗與紀錄 */
         #overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
             z-index: 100;
         }
 
-        .btn-start {
-            background: #FF5252;
+        .record-list {
+            margin: 20px 0;
+            width: 80%;
+            background: var(--yellow);
+            padding: 15px;
+            border-radius: 20px;
+            list-style: none;
+            text-align: left;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 1.2rem;
+            border-radius: 15px;
+            border: 2px solid var(--blue);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn-fancy {
+            background: #FF85A1;
             color: white;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 1.8rem;
+            padding: 12px 35px;
+            border-radius: 30px;
+            font-size: 1.3rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 10px 0 #D32F2F;
+            box-shadow: 0 6px 0 #D6336C;
             font-weight: bold;
         }
 
-        .btn-start:active { transform: translateY(5px); box-shadow: 0 5px 0 #D32F2F; }
+        .btn-fancy:active { transform: translateY(3px); box-shadow: 0 3px 0 #D6336C; }
 
         #feedback-text {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 45%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 4rem;
+            font-size: 5rem;
             font-weight: 900;
             pointer-events: none;
             display: none;
+            z-index: 10;
         }
     </style>
 </head>
@@ -144,20 +164,29 @@
 
 <div id="game-container">
     <div class="header">
-        <div class="score-board">SCORE: <span id="score">0</span></div>
-        <h1 style="color:var(--info); margin:0;">CMS Note Game</h1>
+        <div class="score-board">✨ SCORE: <span id="score">0</span></div>
+        <h1>Note Identification Game</h1>
         <div class="timer-box" id="timer">01:00</div>
     </div>
 
-    <canvas id="staffCanvas" width="1000" height="260"></canvas>
+    <canvas id="staffCanvas" width="1000" height="240"></canvas>
     <div id="feedback-text"></div>
 
     <div id="piano"></div>
 
     <div id="overlay">
-        <h1 id="result-title">Ready to Start?</h1>
-        <p id="final-score" style="font-size:1.5rem;"></p>
-        <button class="btn-start" onclick="startGame()">START GAME</button>
+        <h2 id="result-title" style="font-size: 2.5rem; margin: 10px; color: #FF85A1;">Time's Up! 🍭</h2>
+        <div id="score-input-area">
+            <p style="font-size: 1.3rem;">Great Job! Enter your name:</p>
+            <input type="text" id="playerName" placeholder="Your Name" maxlength="10">
+            <br>
+            <button class="btn-fancy" onclick="submitScore()">Submit & Play Again</button>
+        </div>
+        
+        <div class="record-list">
+            <h3 style="margin: 0 0 10px 0;">🏆 High Scores</h3>
+            <div id="highScores"></div>
+        </div>
     </div>
 </div>
 
@@ -171,7 +200,7 @@
     let timeLeft = 60;
     let gameActive = false;
     let targetNote = "";
-    let noteColor = "#000"; 
+    let noteColor = "#5B5B5B";
     let timerId;
 
     const s = 24; 
@@ -190,21 +219,26 @@
     function drawStaff() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        ctx.strokeStyle = "#444";
+        // 畫五線譜
+        ctx.strokeStyle = "#D1D5DB";
         ctx.lineWidth = 2;
         for (let i = -2; i <= 2; i++) {
             let y = centerY + (i * s);
             ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(950, y); ctx.stroke();
         }
 
-        ctx.font = `${s * 9}px Arial`; 
-        ctx.fillStyle = "#000";
-        ctx.textBaseline = "middle"; 
+        // --- 高音譜號精確調整 ---
+        ctx.save();
+        ctx.fillStyle = "#5B5B5B";
+        ctx.font = `${s * 9}px Arial`;
+        ctx.textBaseline = "middle";
         
-        // 修正 1: 高音譜號位置向上移動 24px (向上即為 $Y$ 軸減去 24)。
-        // 原本座標是 `centerY + s * 1.5`，現在變為 `centerY + s * 1.5 - 24`。
-        // 因為 $s=24$，簡化為 `centerY + s * 0.5`。
-        ctx.fillText("𝄞", 70, centerY + s * 0.5); 
+        // 1. 橫向縮窄 (scaleX)
+        // 2. 移動座標：原本位置上移 24px (centerY + s*0.5)
+        ctx.translate(70, centerY + s * 0.5); 
+        ctx.scale(0.8, 1); // 橫向壓縮到 80%，讓腹部看起來縮窄
+        ctx.fillText("𝄞", 0, 0); 
+        ctx.restore();
 
         if (targetNote) renderNote();
     }
@@ -214,19 +248,16 @@
         const y = centerY - (steps * (s / 2));
         const x = canvas.width / 2 + 50;
 
-        // 統一音符輪廓顏色和寬度
         ctx.strokeStyle = noteColor;
-        ctx.lineWidth = s * 0.15; // 設定空心橢圓輪廓寬度
+        ctx.lineWidth = 3;
 
-        // 修正 2: 全音符空白且圈圈水平反轉
-        // 原本旋轉是 `Math.PI / 8` (約 22.5度,斜率 \)。
-        // 現在改為 `-Math.PI / 8` (約 -22.5度,斜率 /, 水平反轉斜率方向)。
+        // 全音符：空心、斜率反轉 (/)
         ctx.beginPath();
+        // 旋轉角度改為 -Math.PI / 8 實現水平反轉
         ctx.ellipse(x, y, s * 0.7, s * 0.55, -Math.PI / 8, 0, 2 * Math.PI);
-        // 使用 ctx.stroke() 來畫空白（空心）輪廓，移除原本的 ctx.fill()。
         ctx.stroke();
 
-        // 畫加線，只畫橫線，無符桿
+        // 畫加線
         if (steps <= -6) { ctx.beginPath(); ctx.moveTo(x-25, centerY+s*3); ctx.lineTo(x+25, centerY+s*3); ctx.stroke(); }
         if (steps >= 6) { ctx.beginPath(); ctx.moveTo(x-25, centerY-s*3); ctx.lineTo(x+25, centerY-s*3); ctx.stroke(); }
         if (steps >= 8) { ctx.beginPath(); ctx.moveTo(x-25, centerY-s*4); ctx.lineTo(x+25, centerY-s*4); ctx.stroke(); }
@@ -244,14 +275,14 @@
     function handleInput(note) {
         if (!gameActive) return;
         if (note === targetNote) {
-            noteColor = "#000"; 
+            noteColor = "#5B5B5B"; 
             score += 10;
             document.getElementById('score').innerText = score;
-            showFeedback("CORRECT!", "#4CAF50");
-            next(); // 生成下一個
+            showFeedback("🌈 WELL DONE!", "#4CAF50");
+            next();
         } else {
             noteColor = "#FF5252"; 
-            showFeedback("ERROR!", "#FF5252");
+            showFeedback("Ouch! 🍎", "#FF5252");
             drawStaff();
         }
     }
@@ -260,13 +291,17 @@
         feedbackText.innerText = text;
         feedbackText.style.color = color;
         feedbackText.style.display = 'block';
-        setTimeout(() => feedbackText.style.display = 'none', 500);
+        setTimeout(() => feedbackText.style.display = 'none', 600);
     }
 
     function next() {
         const keys = Object.keys(noteMap);
-        targetNote = keys[Math.floor(Math.random() * keys.length)];
-        noteColor = "#000"; 
+        let newNote;
+        do {
+            newNote = keys[Math.floor(Math.random() * keys.length)];
+        } while (newNote === targetNote); // 避免連續出同一題
+        targetNote = newNote;
+        noteColor = "#5B5B5B"; 
         drawStaff(); 
     }
 
@@ -280,8 +315,8 @@
         timerId = setInterval(() => {
             timeLeft--;
             let m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-            let s = String(timeLeft % 60).padStart(2, '0');
-            document.getElementById('timer').innerText = `${m}:${s}`;
+            let sec = String(timeLeft % 60).padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${sec}`;
             if (timeLeft <= 0) endGame();
         }, 1000);
         
@@ -292,14 +327,45 @@
         gameActive = false;
         clearInterval(timerId);
         document.getElementById('overlay').style.display = 'flex';
-        document.getElementById('result-title').innerText = "TIME'S UP!";
-        document.getElementById('final-score').innerText = `Your Final Score: ${score}`;
-        document.querySelector('.btn-start').innerText = "RETRY";
+        displayHighScores();
+    }
+
+    // 分數紀錄功能 (LocalStorage)
+    function submitScore() {
+        const name = document.getElementById('playerName').value || "Little Musician";
+        const newRecord = { name: name, score: score, date: new Date().toLocaleDateString() };
+        
+        let records = JSON.parse(localStorage.getItem('noteGameRecords') || "[]");
+        records.push(newRecord);
+        records.sort((a, b) => b.score - a.score);
+        records = records.slice(0, 5); // 只保留前5名
+        
+        localStorage.setItem('noteGameRecords', JSON.stringify(records));
+        
+        document.getElementById('playerName').value = "";
+        startGame(); // 重新開始
+    }
+
+    function displayHighScores() {
+        const records = JSON.parse(localStorage.getItem('noteGameRecords') || "[]");
+        const listArea = document.getElementById('highScores');
+        if (records.length === 0) {
+            listArea.innerHTML = "<p>No records yet. Be the first!</p>";
+            return;
+        }
+        let html = "<table style='width:100%'>";
+        records.forEach((r, index) => {
+            html += `<tr><td>${index+1}. ${r.name}</td><td style='text-align:right'>${r.score} pts</td></tr>`;
+        });
+        html += "</table>";
+        listArea.innerHTML = html;
     }
 
     window.onload = () => {
         initPiano();
         document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('score-input-area').innerHTML = `<button class="btn-fancy" onclick="startGame()">START GAME 🚀</button>`;
+        displayHighScores();
         drawStaff();
     };
 </script>
