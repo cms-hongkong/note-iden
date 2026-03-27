@@ -2,8 +2,8 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Note Identification Game - Super Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Note Identification Game</title>
     <style>
         :root {
             --mint: #B2F2BB;
@@ -22,156 +22,179 @@
             min-height: 100vh;
             margin: 0;
             color: var(--text);
-            overflow: hidden;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         #game-container {
             background: white;
-            padding: 30px;
-            border-radius: 40px;
-            box-shadow: 0 15px 0px #CBD5E0, 0 25px 50px rgba(0,0,0,0.1);
-            width: 1000px;
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: 0 10px 0px #CBD5E0, 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 900px;
             position: relative;
             text-align: center;
-            border: 10px solid white;
+            border: 6px solid white;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .score-board, .timer-box {
             background: var(--yellow);
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-size: 1.5rem;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 1.1rem;
             font-weight: bold;
-            border: 3px solid #FAD7A0;
+            border: 2px solid #FAD7A0;
+            flex: 1;
+            min-width: 100px;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             margin: 0;
             color: #FF85A1;
-            text-shadow: 2px 2px 0px #FFF;
+            width: 100%;
+            order: -1;
         }
 
         canvas {
             width: 100%;
-            height: 280px;
+            height: auto;
+            max-height: 240px;
             background: white;
-            border-radius: 20px;
+            border-radius: 15px;
             margin: 10px 0;
+            touch-action: none;
+        }
+
+        /* 鋼琴容器：支援手機橫向滑動 */
+        #piano-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            background: #F7FAFC;
+            border-radius: 20px;
+            padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
         }
 
         #piano {
-            display: flex;
+            display: inline-flex;
             justify-content: center;
-            height: 200px;
-            padding: 15px;
-            background: #F7FAFC;
-            border-radius: 25px;
-            border: 4px solid #EDF2F7;
+            height: 160px;
+            padding: 10px 20px;
+            position: relative;
         }
 
         .key {
-            width: 48px;
+            width: 40px;
             height: 100%;
             background: white;
             border: 1px solid #D1D5DB;
-            border-radius: 0 0 10px 10px;
+            border-radius: 0 0 8px 8px;
             cursor: pointer;
             z-index: 1;
+            flex-shrink: 0;
             transition: all 0.1s;
             box-shadow: 0 4px 0 #E2E8F0;
         }
 
         .key.black {
-            width: 32px;
-            height: 120px;
+            width: 28px;
+            height: 100px;
             background: #4A5568;
-            margin: 0 -16px;
+            margin: 0 -14px;
             z-index: 2;
             border: none;
             box-shadow: 0 4px 0 #2D3748;
         }
 
         .key:active { transform: translateY(4px); box-shadow: none; background: #FFEBEE; }
-        .key.black:active { background: #000; }
 
-        /* 結束彈窗樣式 */
+        /* 彈窗樣式 */
         #overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.98);
-            border-radius: 30px;
-            display: none;
+            border-radius: 25px;
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 100;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .input-group {
             background: var(--pink);
-            padding: 20px;
-            border-radius: 25px;
-            box-shadow: 0 8px 0 #F78DA7;
-            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            width: 90%;
+            max-width: 300px;
         }
 
         input {
-            padding: 12px;
-            font-size: 1.3rem;
-            border-radius: 15px;
-            border: 3px solid white;
+            padding: 10px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: 2px solid white;
+            width: 80%;
             text-align: center;
-            outline: none;
-            width: 250px;
         }
 
         .btn-fancy {
             background: #FF85A1;
             color: white;
-            padding: 15px 40px;
+            padding: 12px 25px;
             border-radius: 50px;
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 8px 0 #D6336C;
+            box-shadow: 0 5px 0 #D6336C;
             font-weight: bold;
-            margin-top: 10px;
+            margin: 5px;
         }
 
-        .btn-fancy:active { transform: translateY(4px); box-shadow: 0 4px 0 #D6336C; }
+        .btn-fancy.secondary { background: var(--blue); box-shadow: 0 5px 0 #5DA9EE; }
 
         .leaderboard {
-            width: 80%;
+            width: 90%;
+            max-width: 400px;
             background: var(--mint);
-            padding: 20px;
-            border-radius: 25px;
+            padding: 15px;
+            border-radius: 20px;
             margin-top: 10px;
-        }
-
-        #last-result-display {
-            font-size: 1.8rem;
-            color: #2D3748;
-            margin-bottom: 10px;
-            font-weight: bold;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         #feedback-text {
             position: absolute;
-            top: 45%; left: 55%;
+            top: 40%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 5rem;
+            font-size: 3.5rem;
             font-weight: 900;
             pointer-events: none;
             display: none;
             z-index: 10;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.4rem; }
+            .score-board, .timer-box { font-size: 1rem; }
+            #piano { height: 140px; }
+            .key { width: 35px; }
+            .key.black { width: 24px; margin: 0 -12px; height: 85px; }
         }
     </style>
 </head>
@@ -179,39 +202,43 @@
 
 <div id="game-container">
     <div class="header">
-        <div class="score-board">⭐ SCORE: <span id="score">0</span></div>
         <h1>Note Identification Game</h1>
+        <div class="score-board">⭐ SCORE: <span id="score">0</span></div>
         <div class="timer-box" id="timer">01:00</div>
     </div>
 
     <canvas id="staffCanvas" width="1000" height="280"></canvas>
     <div id="feedback-text"></div>
 
-    <div id="piano"></div>
+    <div id="piano-wrapper">
+        <div id="piano"></div>
+    </div>
 
     <div id="overlay">
-        <div id="final-stats-view" style="display: none;">
-            <div id="last-result-display"></div>
-            <div class="leaderboard">
-                <h3 style="margin: 0 0 10px 0;">🏆 High Score Records</h3>
-                <div id="highScores"></div>
-            </div>
-            <button class="btn-fancy" onclick="resetForNewGame()">Play Again! 🚀</button>
-        </div>
-
-        <div id="input-view">
-            <h2 style="font-size: 2.8rem; color: #FF85A1; margin-top: 0;">Time's Up! 🍭</h2>
-            <div class="input-group">
-                <p style="font-size: 1.4rem; margin-top: 0;">Amazing! What's your name?</p>
-                <input type="text" id="playerName" placeholder="Enter Name" maxlength="12">
-                <br>
-                <button class="btn-fancy" onclick="submitScore()">SUBMIT SCORE</button>
-            </div>
-        </div>
-
         <div id="start-view">
-            <h2 style="font-size: 2.5rem; color: #5B5B5B;">Ready for Music Fun?</h2>
+            <h2 style="color: #5B5B5B;">Welcome! 🍭</h2>
             <button class="btn-fancy" onclick="startGame()">START GAME 🚀</button>
+            <br>
+            <button class="btn-fancy secondary" onclick="showLeaderboardView()">View Leaderboard 🏆</button>
+        </div>
+
+        <div id="input-view" style="display: none;">
+            <h2 style="color: #FF85A1; margin-top: 0;">Time's Up! 🍦</h2>
+            <div class="input-group">
+                <p style="margin: 0 0 10px 0;">Enter your name:</p>
+                <input type="text" id="playerName" placeholder="Your Name" maxlength="12">
+            </div>
+            <button class="btn-fancy" onclick="submitScore()">SUBMIT & SEE RANK</button>
+        </div>
+
+        <div id="stats-view" style="display: none;">
+            <div id="last-result" style="font-weight: bold; margin-bottom: 10px;"></div>
+            <div class="leaderboard">
+                <h3 style="margin: 0 0 10px 0;">🏆 High Scores</h3>
+                <div id="highScoresList"></div>
+            </div>
+            <button class="btn-fancy" onclick="resetUI()">Back to Menu</button>
+            <button class="btn-fancy secondary" onclick="startGame()">Play Again! 🚀</button>
         </div>
     </div>
 </div>
@@ -244,26 +271,26 @@
 
     function drawStaff() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 畫五線譜
         ctx.strokeStyle = "#D1D5DB";
         ctx.lineWidth = 2.5;
+
+        // 五線譜
         for (let i = -2; i <= 2; i++) {
             let y = centerY + (i * s);
             ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(950, y); ctx.stroke();
         }
 
-        // --- 高音譜號：大 50% 並精確對齊 ---
+        // --- 高音譜號修正 ---
         ctx.save();
         ctx.fillStyle = "#5B5B5B";
-        // 大 50%：從 s*9 變成 s*13.5
-        ctx.font = `${s * 13.5}px Arial`;
+        // 1. 縮細 50%：從之前的 s*13.5 降為 s*6.75
+        ctx.font = `${s * 6.75}px Arial`;
         ctx.textBaseline = "middle";
         
-        // 坐標精密調整：因為字體變大，Y 軸偏移需微調以維持視覺比例
-        // 寬度縮窄 0.8 倍保持形態，高度不變
-        ctx.translate(80, centerY + s * 1.3); 
-        ctx.scale(0.8, 1); 
+        // 2. 移高 48px：原坐標是 centerY + s*1.3，移高 48px (即 2s)
+        // 新坐標 = centerY + s*1.3 - 2s = centerY - s*0.7
+        ctx.translate(80, centerY - s * 0.7); 
+        ctx.scale(0.85, 1); // 保持纖細形態
         ctx.fillText("𝄞", 0, 0); 
         ctx.restore();
 
@@ -273,17 +300,14 @@
     function renderNote() {
         const steps = noteMap[targetNote];
         const y = centerY - (steps * (s / 2));
-        const x = canvas.width / 2 + 80;
+        const x = canvas.width / 2 + 50;
 
         ctx.strokeStyle = noteColor;
         ctx.lineWidth = 4;
-
-        // 全音符：空心、斜率反轉 (/)
         ctx.beginPath();
         ctx.ellipse(x, y, s * 0.75, s * 0.6, -Math.PI / 8, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // 加線 (C4, A5, C6)
         if (steps <= -6) { ctx.beginPath(); ctx.moveTo(x-30, centerY+s*3); ctx.lineTo(x+30, centerY+s*3); ctx.stroke(); }
         if (steps >= 6) { ctx.beginPath(); ctx.moveTo(x-30, centerY-s*3); ctx.lineTo(x+30, centerY-s*3); ctx.stroke(); }
         if (steps >= 8) { ctx.beginPath(); ctx.moveTo(x-30, centerY-s*4); ctx.lineTo(x+30, centerY-s*4); ctx.stroke(); }
@@ -293,6 +317,7 @@
         pianoLayout.forEach(note => {
             const div = document.createElement('div');
             div.className = `key ${note.includes("#") ? 'black' : ''}`;
+            div.dataset.note = note;
             div.onclick = () => handleInput(note);
             pianoContainer.appendChild(div);
         });
@@ -301,21 +326,18 @@
     function handleInput(note) {
         if (!gameActive) return;
         if (note === targetNote) {
-            noteColor = "#5B5B5B"; 
-            score += 10;
+            noteColor = "#5B5B5B"; score += 10;
             document.getElementById('score').innerText = score;
             showFeedback("🌈 GREAT!", "#4CAF50");
             next();
         } else {
-            noteColor = "#FF5252"; 
-            showFeedback("Oops! 🍎", "#FF5252");
+            noteColor = "#FF5252"; showFeedback("Oops! 🍎", "#FF5252");
             drawStaff();
         }
     }
 
     function showFeedback(text, color) {
-        feedbackText.innerText = text;
-        feedbackText.style.color = color;
+        feedbackText.innerText = text; feedbackText.style.color = color;
         feedbackText.style.display = 'block';
         setTimeout(() => feedbackText.style.display = 'none', 600);
     }
@@ -323,24 +345,14 @@
     function next() {
         const keys = Object.keys(noteMap);
         let newNote;
-        do {
-            newNote = keys[Math.floor(Math.random() * keys.length)];
-        } while (newNote === targetNote);
-        targetNote = newNote;
-        noteColor = "#5B5B5B"; 
-        drawStaff(); 
+        do { newNote = keys[Math.floor(Math.random() * keys.length)]; } while (newNote === targetNote);
+        targetNote = newNote; noteColor = "#5B5B5B"; drawStaff();
     }
 
     function startGame() {
-        score = 0;
-        timeLeft = 60;
-        gameActive = true;
+        score = 0; timeLeft = 60; gameActive = true;
         document.getElementById('score').innerText = "0";
         document.getElementById('overlay').style.display = 'none';
-        document.getElementById('start-view').style.display = 'none';
-        document.getElementById('input-view').style.display = 'none';
-        document.getElementById('final-stats-view').style.display = 'none';
-        
         timerId = setInterval(() => {
             timeLeft--;
             let m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
@@ -348,64 +360,58 @@
             document.getElementById('timer').innerText = `${m}:${sec}`;
             if (timeLeft <= 0) endGame();
         }, 1000);
-        
         next();
     }
 
     function endGame() {
-        gameActive = false;
-        clearInterval(timerId);
+        gameActive = false; clearInterval(timerId);
         document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('start-view').style.display = 'none';
+        document.getElementById('stats-view').style.display = 'none';
         document.getElementById('input-view').style.display = 'block';
     }
 
     function submitScore() {
         const name = document.getElementById('playerName').value.trim() || "Musician";
         const newRecord = { name: name, score: score, date: new Date().toLocaleDateString() };
-        
-        // 儲存到 LocalStorage
-        let records = JSON.parse(localStorage.getItem('cmsNoteRecords') || "[]");
+        let records = JSON.parse(localStorage.getItem('noteRecordsV7') || "[]");
         records.push(newRecord);
         records.sort((a, b) => b.score - a.score);
-        records = records.slice(0, 5); 
-        localStorage.setItem('cmsNoteRecords', JSON.stringify(records));
+        records = records.slice(0, 10);
+        localStorage.setItem('noteRecordsV7', JSON.stringify(records));
         
-        // 顯示結果與名次
+        document.getElementById('last-result').innerText = `Player: ${name} | Score: ${score} pts`;
+        showLeaderboardView();
+    }
+
+    function showLeaderboardView() {
+        document.getElementById('start-view').style.display = 'none';
         document.getElementById('input-view').style.display = 'none';
-        document.getElementById('final-stats-view').style.display = 'block';
-        document.getElementById('last-result-display').innerText = `Player: ${name} | Score: ${score} pts`;
-        
+        document.getElementById('stats-view').style.display = 'block';
         displayHighScores();
     }
 
     function displayHighScores() {
-        const records = JSON.parse(localStorage.getItem('cmsNoteRecords') || "[]");
-        const listArea = document.getElementById('highScores');
-        if (records.length === 0) {
-            listArea.innerHTML = "<p>Play to set a record!</p>";
-            return;
-        }
-        let html = "<table style='width:100%; border-spacing: 0 10px; font-size: 1.2rem;'>";
+        const records = JSON.parse(localStorage.getItem('noteRecordsV7') || "[]");
+        const listArea = document.getElementById('highScoresList');
+        if (records.length === 0) { listArea.innerHTML = "<p>No records yet!</p>"; return; }
+        let html = "<table style='width:100%; border-spacing: 0 8px;'>";
         records.forEach((r, idx) => {
-            html += `<tr><td style='text-align:left;'>#${idx+1} ${r.name}</td><td style='text-align:right; font-weight:bold;'>${r.score} pts</td></tr>`;
+            html += `<tr><td>#${idx+1} ${r.name}</td><td style='text-align:right; font-weight:bold;'>${r.score}</td></tr>`;
         });
-        html += "</table>";
-        listArea.innerHTML = html;
+        listArea.innerHTML = html + "</table>";
     }
 
-    function resetForNewGame() {
+    function resetUI() {
         document.getElementById('playerName').value = "";
-        startGame();
-    }
-
-    window.onload = () => {
-        initPiano();
         document.getElementById('overlay').style.display = 'flex';
         document.getElementById('start-view').style.display = 'block';
+        document.getElementById('stats-view').style.display = 'none';
         document.getElementById('input-view').style.display = 'none';
-        document.getElementById('final-stats-view').style.display = 'none';
-        drawStaff();
-    };
+        document.getElementById('last-result').innerText = "";
+    }
+
+    window.onload = () => { initPiano(); drawStaff(); resetUI(); };
 </script>
 
 </body>
