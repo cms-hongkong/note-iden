@@ -2,93 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CMS Note Identification Game - Pro Edition</title>
+    <title>CMS Note Identification Game - Turbo Edition</title>
     <style>
         :root {
-            --primary-teal: #4db6ac;
-            --secondary-teal: #26a69a;
-            --bg: #f4f7f6;
+            --primary: #FF5252;
+            --success: #4CAF50;
+            --info: #2196F3;
+            --accent: #9C27B0;
+            --bg-gradient: linear-gradient(135deg, #e0f7fa 0%, #fce4ec 100%);
         }
+
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: var(--bg);
+            font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+            background: var(--bg-gradient);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            overflow: hidden;
         }
+
         #game-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-            width: 1000px; /* 增加寬度以容納2個八度 */
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            width: 1000px;
+            position: relative;
+            border: 8px solid white;
         }
+
+        /* 頂部資訊欄 */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        .status {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #444;
-            display: flex;
-            gap: 25px;
+
+        .score-board {
+            background: #fff;
+            padding: 10px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #333;
         }
+
+        .timer-box {
+            background: #333;
+            color: #FFEB3B;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* 畫布區域 */
         canvas {
             width: 100%;
-            height: 220px;
-            margin-bottom: 30px;
+            height: 240px;
+            background: #fff;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
-        /* 鋼琴容器：寬度需自動適配 */
+
+        /* 鋼琴區域 */
         #piano {
             display: flex;
             justify-content: center;
             height: 220px;
             position: relative;
-            background: #222;
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+            padding: 10px;
+            background: #2c3e50;
+            border-radius: 15px;
+            box-shadow: 0 10px 0 #1a252f;
         }
+
         .key {
-            width: 50px;
+            width: 48px;
             height: 100%;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 0 0 6px 6px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
             cursor: pointer;
             z-index: 1;
-            transition: background 0.1s;
+            transition: transform 0.1s;
         }
+
         .key.black {
-            width: 34px;
+            width: 32px;
             height: 130px;
-            background: #333;
-            margin: 0 -17px;
+            background: linear-gradient(#444, #000);
+            margin: 0 -16px;
             z-index: 2;
             border: none;
-            border-radius: 0 0 4px 4px;
         }
-        .key:active { background: #e0e0e0; box-shadow: inset 0 5px 10px rgba(0,0,0,0.2); }
+
+        .key:active { background: #ffe082; transform: translateY(5px); }
         .key.black:active { background: #000; }
-        
-        .footer {
-            margin-top: 30px;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .btn {
-            background: var(--primary-teal);
+
+        /* 遊戲結束彈窗 */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            border-radius: 25px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             color: white;
+            z-index: 100;
+        }
+
+        .btn-start {
+            background: #FF5252;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.8rem;
             border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: bold;
             cursor: pointer;
+            box-shadow: 0 10px 0 #D32F2F;
+            font-weight: bold;
+        }
+
+        .btn-start:active { transform: translateY(5px); box-shadow: 0 5px 0 #D32F2F; }
+
+        #feedback-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            font-weight: 900;
+            pointer-events: none;
+            display: none;
         }
     </style>
 </head>
@@ -96,19 +148,20 @@
 
 <div id="game-container">
     <div class="header">
-        <h2 style="margin:0; color:var(--secondary-teal);">CMS Note ID Game</h2>
-        <div class="status">
-            <span id="score-label">Correct: 0 ✅</span>
-            <span id="timer-label">🕒 00:00</span>
-        </div>
+        <div class="score-board">SCORE: <span id="score">0</span></div>
+        <h1 style="color:var(--info); margin:0;">CMS Note Game</h1>
+        <div class="timer-box" id="timer">01:00</div>
     </div>
 
-    <canvas id="staffCanvas" width="1000" height="220"></canvas>
+    <canvas id="staffCanvas" width="1000" height="240"></canvas>
+    <div id="feedback-text"></div>
 
     <div id="piano"></div>
 
-    <div class="footer">
-        <button class="btn" onclick="location.reload()">Restart Game</button>
+    <div id="overlay">
+        <h1 id="result-title">Ready to Start?</h1>
+        <p id="final-score" style="font-size:1.5rem;"></p>
+        <button class="btn-start" onclick="startGame()">START GAME</button>
     </div>
 </div>
 
@@ -116,116 +169,108 @@
     const canvas = document.getElementById('staffCanvas');
     const ctx = canvas.getContext('2d');
     const pianoContainer = document.getElementById('piano');
+    const feedbackText = document.getElementById('feedback-text');
 
-    // --- 核心比例 ---
-    const s = 22; // 線間距
-    const centerY = canvas.height / 2 + 10; // 第三線 B4 的位置
     let score = 0;
+    let timeLeft = 60;
+    let gameActive = false;
     let targetNote = "";
-    let startTime = Date.now();
+    let noteColor = "#000";
+    let timerId;
 
-    // 數據：C4 到 C6 (2 個八度)
-    // 數字代表距離中心線 B4 的半音步數
+    const s = 24; // 線距
+    const centerY = canvas.height / 2; 
+
     const noteMap = {
         "C4": -6, "D4": -5, "E4": -4, "F4": -3, "G4": -2, "A4": -1, "B4": 0,
-        "C5": 1,  "D5": 2,  "E5": 3,  "F5": 4,  "G5": 5,  "A5": 6,  "B5": 7,
-        "C6": 8
+        "C5": 1,  "D5": 2,  "E5": 3,  "F5": 4,  "G5": 5,  "A5": 6,  "B5": 7, "C6": 8
     };
 
-    // 鋼琴佈局 (2 個八度：C4-C6)
     const pianoLayout = [
         "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4",
-        "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5",
-        "C6"
+        "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5","C6"
     ];
 
     function drawStaff() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 1.5;
-
+        
         // 1. 畫五線譜
+        ctx.strokeStyle = "#444";
+        ctx.lineWidth = 2;
         for (let i = -2; i <= 2; i++) {
             let y = centerY + (i * s);
-            ctx.beginPath();
-            ctx.moveTo(50, y);
-            ctx.lineTo(950, y);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(950, y); ctx.stroke();
         }
 
-        // 2. 巨大的高音譜號 (Treble Clef)
-        // 跨越整個五線譜，調整座標使其中心環繞第二線 (G4)
-        ctx.font = `${s * 7.5}px Arial`; 
+        // 2. 經典巨大的高音譜號
+        ctx.font = `${s * 8}px Arial`; 
         ctx.fillStyle = "#000";
-        // 為了讓它跨越 5 線，Y 偏移量經過精密計算
-        ctx.fillText("𝄞", 60, centerY + s * 1.6); 
+        // 修正 Y 偏移，讓 G 螺旋對準下數第二線
+        ctx.fillText("𝄞", 65, centerY + s * 1.6); 
 
-        if (targetNote) renderNote(targetNote);
+        if (targetNote) renderNote();
     }
 
-    function renderNote(name) {
-        const steps = noteMap[name];
+    function renderNote() {
+        const steps = noteMap[targetNote];
         const y = centerY - (steps * (s / 2));
         const x = canvas.width / 2 + 50;
 
-        ctx.fillStyle = "#000";
-        ctx.strokeStyle = "#000";
+        ctx.fillStyle = noteColor;
+        ctx.strokeStyle = noteColor;
 
-        // 畫橢圓符頭 (旋轉 15 度)
+        // 符頭
         ctx.beginPath();
         ctx.ellipse(x, y, s * 0.65, s * 0.5, Math.PI / 8, 0, 2 * Math.PI);
         ctx.fill();
 
-        // 畫符桿 (Stem) - 修正方向邏輯
-        ctx.lineWidth = 2;
+        // 符桿
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        if (steps >= 0) { 
-            // B4 及以上：符桿向下，在左側
+        if (steps >= 0) { // B4以上符桿向下
             ctx.moveTo(x - s * 0.6, y);
             ctx.lineTo(x - s * 0.6, y + s * 3.5);
-        } else { 
-            // B4 以下：符桿向上，在右側
+        } else { // B4以下符桿向上
             ctx.moveTo(x + s * 0.6, y);
             ctx.lineTo(x + s * 0.6, y - s * 3.5);
         }
         ctx.stroke();
 
-        // 畫加線 (Ledger Lines)
-        // 下加線 (C4)
-        if (steps <= -6) {
-            ctx.beginPath();
-            ctx.moveTo(x - s, centerY + s * 3);
-            ctx.lineTo(x + s, centerY + s * 3);
-            ctx.stroke();
-        }
-        // 上加線 (A5, B5, C6)
-        if (steps >= 6) {
-            ctx.beginPath();
-            let ly = centerY - (3 * s); // 第一條上加線位置
-            ctx.moveTo(x - s, ly); ctx.lineTo(x + s, ly);
-            if (steps >= 8) { // C6 需要第二條上加線
-                let ly2 = centerY - (4 * s);
-                ctx.moveTo(x - s, ly2); ctx.lineTo(x + s, ly2);
-            }
-            ctx.stroke();
-        }
+        // 加線 (C4, A5, C6)
+        if (steps <= -6) { ctx.beginPath(); ctx.moveTo(x-25, centerY+s*3); ctx.lineTo(x+25, centerY+s*3); ctx.stroke(); }
+        if (steps >= 6) { ctx.beginPath(); ctx.moveTo(x-25, centerY-s*3); ctx.lineTo(x+25, centerY-s*3); ctx.stroke(); }
+        if (steps >= 8) { ctx.beginPath(); ctx.moveTo(x-25, centerY-s*4); ctx.lineTo(x+25, centerY-s*4); ctx.stroke(); }
     }
 
     function initPiano() {
         pianoLayout.forEach(note => {
-            const isBlack = note.includes("#");
             const div = document.createElement('div');
-            div.className = `key ${isBlack ? 'black' : ''}`;
-            div.dataset.note = note;
-            div.onclick = () => {
-                if (note === targetNote) {
-                    score++;
-                    document.getElementById('score-label').innerText = `Correct: ${score} ✅`;
-                    next();
-                }
-            };
+            div.className = `key ${note.includes("#") ? 'black' : ''}`;
+            div.onclick = () => handleInput(note);
             pianoContainer.appendChild(div);
         });
+    }
+
+    function handleInput(note) {
+        if (!gameActive) return;
+        if (note === targetNote) {
+            score += 10;
+            document.getElementById('score').innerText = score;
+            showFeedback("CORRECT!", "#4CAF50");
+            noteColor = "#000";
+            next();
+        } else {
+            noteColor = "#FF5252"; // 變紅
+            showFeedback("ERROR!", "#FF5252");
+            drawStaff();
+        }
+    }
+
+    function showFeedback(text, color) {
+        feedbackText.innerText = text;
+        feedbackText.style.color = color;
+        feedbackText.style.display = 'block';
+        setTimeout(() => feedbackText.style.display = 'none', 500);
     }
 
     function next() {
@@ -234,16 +279,38 @@
         drawStaff();
     }
 
-    // 計時器邏輯
-    setInterval(() => {
-        const diff = Math.floor((Date.now() - startTime) / 1000);
-        const m = String(Math.floor(diff / 60)).padStart(2, '0');
-        const s = String(diff % 60).padStart(2, '0');
-        document.getElementById('timer-label').innerText = `🕒 ${m}:${s}`;
-    }, 1000);
+    function startGame() {
+        score = 0;
+        timeLeft = 60;
+        gameActive = true;
+        document.getElementById('score').innerText = "0";
+        document.getElementById('overlay').style.display = 'none';
+        
+        timerId = setInterval(() => {
+            timeLeft--;
+            let m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+            let s = String(timeLeft % 60).padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+        
+        next();
+    }
 
-    initPiano();
-    next();
+    function endGame() {
+        gameActive = false;
+        clearInterval(timerId);
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('result-title').innerText = "TIME'S UP!";
+        document.getElementById('final-score').innerText = `Your Final Score: ${score}`;
+        document.querySelector('.btn-start').innerText = "RETRY";
+    }
+
+    window.onload = () => {
+        initPiano();
+        document.getElementById('overlay').style.display = 'flex';
+        drawStaff();
+    };
 </script>
 
 </body>
